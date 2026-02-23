@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Кейс-задача №2</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .input-group { margin-bottom: 10px; }
+        .output { margin-top: 20px; font-weight: bold; }
+        pre { 
+            font-family: monospace; 
+            background-color: #f4f4f4; 
+            padding: 10px; 
+            font-size: 16px;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Преобразование даты рождения</h1>
+    <div class="input-group">
+        <label>День (1-31):</label>
+        <input type="number" id="day" min="1" max="31">
+    </div>
+    <div class="input-group">
+        <label>Месяц (1-12):</label>
+        <input type="number" id="month" min="1" max="12">
+    </div>
+    <div class="input-group">
+        <label>Год:</label>
+        <input type="number" id="year" min="1900" max="2026">
+    </div>
+    <button id="submitBtn">Показать результаты</button>
 
+    <div class="output" id="resultText"></div>
+    <h3>Дата рождения звездочками (в консоли):</h3>
+    <pre id="starOutput">(Открой консоль, F12)</pre>
+
+    <script>
+        // Функция для определения дня недели
+        function getWeekday(year, month, day) {
+            // В JavaScript месяц идет с 0 (январь) по 11 (декабрь)
+            const date = new Date(year, month - 1, day);
+            const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            return days[date.getDay()];
+        }
+
+        // Функция для определения високосного года
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        // Функция для вычисления возраста
+        function getAge(year, month, day) {
+            const today = new Date();
+            const birthDate = new Date(year, month - 1, day);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            // Если день рождения еще не наступил в этом году
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Функция для рисования цифры звездочками
+        function getStarDigit(digit) {
+            // Шаблоны для цифр 0-9 (7 сегментов)
+            const patterns = {
+                '0': [' *** ', '*   *', '*   *', '*   *', ' *** '],
+                '1': ['  *  ', ' **  ', '  *  ', '  *  ', '*****'],
+                '2': [' *** ', '*   *', '   * ', '  *  ', '*****'],
+                '3': [' *** ', '*   *', '  ** ', '*   *', ' *** '],
+                '4': ['*   *', '*   *', ' ****', '    *', '    *'],
+                '5': ['*****', '*    ', '**** ', '    *', '**** '],
+                '6': [' *** ', '*    ', '**** ', '*   *', ' *** '],
+                '7': ['*****', '    *', '   * ', '  *  ', '  *  '],
+                '8': [' *** ', '*   *', ' *** ', '*   *', ' *** '],
+                '9': [' *** ', '*   *', ' ****', '    *', ' *** ']
+            };
+            return patterns[digit] || patterns['0'];
+        }
+
+        // Функция для вывода даты звездочками в консоль
+        function printDateInStars(day, month, year) {
+            // Превращаем числа в строки с ведущими нулями (дд мм гггг)
+            const dayStr = day.toString().padStart(2, '0');
+            const monthStr = month.toString().padStart(2, '0');
+            const yearStr = year.toString().padStart(4, '0'); // Год и так 4 знака, но оставим для порядка
+            const fullDateStr = dayStr + monthStr + yearStr; // Соединяем в одну строку
+
+            // Массив для хранения 5 строк (высота каждой цифры)
+            const lines = ['', '', '', '', ''];
+
+            for (let i = 0; i < fullDateStr.length; i++) {
+                const digit = fullDateStr[i];
+                const starLines = getStarDigit(digit);
+                
+                // Добавляем каждую строку цифры к соответствующей строке вывода
+                for (let j = 0; j < 5; j++) {
+                    lines[j] += starLines[j] + '  '; // Добавляем пробел между цифрами
+                }
+            }
+
+            // Выводим в консоль
+            console.log('Дата рождения звездочками:');
+            for (let line of lines) {
+                console.log(line);
+            }
+            
+            // Также выведем на страницу (в pre)
+            const starPre = document.getElementById('starOutput');
+            starPre.innerHTML = ''; // Очистим
+            for (let line of lines) {
+                starPre.innerHTML += line + '\n';
+            }
+        }
+
+        // Обработчик кнопки
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const day = parseInt(document.getElementById('day').value);
+            const month = parseInt(document.getElementById('month').value);
+            const year = parseInt(document.getElementById('year').value);
+
+            // Простая валидация
+            if (!day || !month || !year) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
+
+            // Вычисления
+            const weekday = getWeekday(year, month, day);
+            const leap = isLeapYear(year);
+            const age = getAge(year, month, day);
+
+            // Вывод текста на страницу
+            const resultDiv = document.getElementById('resultText');
+            resultDiv.innerHTML = `
+                <p>День недели: <strong>${weekday}</strong></p>
+                <p>Год ${leap ? 'был' : 'не был'} високосным.</p>
+                <p>Вам сейчас: <strong>${age}</strong> лет.</p>
+            `;
+
+            // Вывод звездочек в консоль и на экран
+            printDateInStars(day, month, year);
+        });
+    </script>
+</body>
+</html>
